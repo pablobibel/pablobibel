@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan de Estudios: Detección de Phishing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: A modular, progressive learning path presented as an SPA. The structure consists of 5 learning modules and a final quiz. Navigation is handled by a top bar, allowing users to move between foundational concepts, specific attack types, technical details (SPF/DKIM/DMARC), advanced techniques, and mitigation strategies. This linear-but-flexible structure was chosen to guide a beginner analyst from basic awareness to technical proficiency in a logical, non-overwhelming flow. Interactive cards and diagrams are used to simplify complex topics. -->
+    <!-- Visualization & Content Choices: Report Info: Phishing Types -> Goal: Organize & Inform -> Presentation: Interactive HTML/CSS cards -> Interaction: Click to reveal details -> Justification: Allows users to quickly scan different attack types and dive deeper into those of interest without cluttering the UI. Report Info: SPF/DKIM/DMARC process -> Goal: Explain a complex flow -> Presentation: HTML/CSS animated diagram -> Interaction: On-scroll or on-click steps highlighting -> Justification: Visually breaking down the technical email authentication process is far more effective for learning than text alone. Report Info: Knowledge check -> Goal: Reinforce learning -> Presentation: Interactive Quiz -> Interaction: Multiple choice questions with feedback -> Justification: Active recall through quizzing is a proven method for knowledge retention. CONFIRMING NO SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f7f4;
+            color: #3f3d56;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active {
+            border-bottom-color: #4a5568;
+            color: #2d3748;
+            font-weight: 600;
+        }
+        .nav-link:hover {
+            border-bottom-color: #cbd5e0;
+        }
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .module-content {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .progress-bar-fill {
+            transition: width 0.5s ease-in-out;
+        }
+        .flow-step {
+            transition: all 0.3s ease-in-out;
+            border-color: #e2e8f0;
+        }
+        .flow-step.active {
+            border-color: #4299e1;
+            background-color: #ebf8ff;
+            transform: scale(1.05);
+        }
+        .quiz-option {
+            transition: background-color 0.2s;
+        }
+        .quiz-option.correct {
+            background-color: #c6f6d5;
+            border-color: #9ae6b4;
+        }
+        .quiz-option.incorrect {
+            background-color: #fed7d7;
+            border-color: #feb2b2;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div id="app" class="min-h-screen flex flex-col">
+        <header class="bg-white shadow-sm sticky top-0 z-10">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl font-bold text-gray-800">Guía Maestra de Phishing</h1>
+                    </div>
+                    <nav class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-4" id="nav-menu">
+                            <a href="#module-1" class="nav-link px-3 py-2 text-sm font-medium text-gray-600">Fundamentos</a>
+                            <a href="#module-2" class="nav-link px-3 py-2 text-sm font-medium text-gray-600">Tipos de Ataques</a>
+                            <a href="#module-3" class="nav-link px-3 py-2 text-sm font-medium text-gray-600">Análisis Técnico</a>
+                            <a href="#module-4" class="nav-link px-3 py-2 text-sm font-medium text-gray-600">Técnicas Avanzadas</a>
+                            <a href="#module-5" class="nav-link px-3 py-2 text-sm font-medium text-gray-600">Mitigación</a>
+                            <a href="#quiz" class="nav-link px-3 py-2 text-sm font-medium text-gray-600">Evaluación</a>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div id="content-area">
+            </div>
+        </main>
+
+        <footer class="bg-white mt-8">
+            <div class="container mx-auto py-4 px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
+                Plan de estudios interactivo diseñado para analistas de ciberseguridad.
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const appData = {
+            modules: [
+                {
+                    id: 'module-1',
+                    title: 'Módulo 1: Fundamentos del Phishing',
+                    content: `
+                        <p class="text-lg text-gray-700 mb-6">Este módulo sienta las bases para entender qué es el phishing y por qué es una de las amenazas más persistentes y peligrosas en ciberseguridad. Empezaremos desde cero, definiendo el concepto y explorando su impacto.</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800">¿Qué es el Phishing?</h3>
+                                <p class="text-gray-600">El phishing es una técnica de ingeniería social que usan los ciberdelincuentes para engañar a las personas y hacer que revelen información confidencial, como contraseñas, números de tarjetas de crédito o datos personales. Usualmente, se hacen pasar por una entidad legítima a través de correos electrónicos, mensajes de texto u otros medios de comunicación.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800">El Impacto del Phishing</h3>
+                                <p class="text-gray-600">Un ataque de phishing exitoso puede tener consecuencias devastadoras, incluyendo robo de identidad, pérdidas financieras, instalación de malware (como ransomware) y compromiso de cuentas corporativas, lo que puede llevar a brechas de datos a gran escala.</p>
+                            </div>
+                        </div>
+                        <div class="mt-8 bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">Señales de Alerta Comunes (Nivel Básico)</h3>
+                            <ul class="space-y-3">
+                                <li class="flex items-start"><span class="text-blue-500 mr-3 font-bold">»</span><div><strong class="font-medium text-gray-700">Remitente Desconocido o Sospechoso:</strong> El correo proviene de una dirección que no reconoces o que imita a una legítima pero con ligeras variaciones (ej: info@paypa1.com).</div></li>
+                                <li class="flex items-start"><span class="text-blue-500 mr-3 font-bold">»</span><div><strong class="font-medium text-gray-700">Sentido de Urgencia o Amenaza:</strong> Mensajes que te presionan para actuar inmediatamente ("¡Tu cuenta será suspendida!").</div></li>
+                                <li class="flex items-start"><span class="text-blue-500 mr-3 font-bold">»</span><div><strong class="font-medium text-gray-700">Errores Gramaticales y de Ortografía:</strong> Muchos correos de phishing contienen errores evidentes.</div></li>
+                                <li class="flex items-start"><span class="text-blue-500 mr-3 font-bold">»</span><div><strong class="font-medium text-gray-700">Enlaces y Archivos Adjuntos Inesperados:</strong> No hagas clic en enlaces ni descargues archivos que no esperabas recibir. Pasa el cursor sobre el enlace para ver la URL real.</div></li>
+                                <li class="flex items-start"><span class="text-blue-500 mr-3 font-bold">»</span><div><strong class="font-medium text-gray-700">Saludos Genéricos:</strong> En lugar de tu nombre, usan frases como "Estimado cliente".</div></li>
+                            </ul>
+                        </div>
+                    `
+                },
+                {
+                    id: 'module-2',
+                    title: 'Módulo 2: Tipos de Ataques de Phishing',
+                    content: `
+                        <p class="text-lg text-gray-700 mb-6">El phishing no es un ataque único; evoluciona y se adapta. Aquí exploramos las variantes más comunes, desde las más masivas hasta las más dirigidas y sofisticadas.</p>
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="card bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="font-semibold text-lg mb-2 text-gray-800">Phishing Tradicional</h3>
+                                <p class="text-gray-600">Ataques masivos y no dirigidos enviados a miles de personas, esperando que algunas caigan. Suelen imitar a grandes empresas (bancos, redes sociales, servicios de paquetería).</p>
+                            </div>
+                            <div class="card bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="font-semibold text-lg mb-2 text-gray-800">Spear Phishing</h3>
+                                <p class="text-gray-600">Un ataque dirigido a una persona o grupo específico. El atacante investiga a su víctima para personalizar el mensaje, usando su nombre, cargo o información relevante para hacerlo más creíble.</p>
+                            </div>
+                            <div class="card bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="font-semibold text-lg mb-2 text-gray-800">Whaling</h3>
+                                <p class="text-gray-600">Una forma de spear phishing dirigida a ejecutivos de alto nivel (CEOs, CFOs). El objetivo es obtener información muy valiosa o realizar transferencias de dinero de gran cuantía.</p>
+                            </div>
+                            <div class="card bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="font-semibold text-lg mb-2 text-gray-800">Vishing (Voice Phishing)</h3>
+                                <p class="text-gray-600">Phishing realizado a través de llamadas telefónicas. Los atacantes pueden usar sistemas de voz automatizados o hablar directamente para engañar a la víctima.</p>
+                            </div>
+                            <div class="card bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="font-semibold text-lg mb-2 text-gray-800">Smishing (SMS Phishing)</h3>
+                                <p class="text-gray-600">Usa mensajes de texto (SMS) para enviar enlaces maliciosos. A menudo informan sobre un paquete no entregado, un premio ganado o un problema con una cuenta.</p>
+                            </div>
+                            <div class="card bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="font-semibold text-lg mb-2 text-gray-800">Pharming</h3>
+                                <p class="text-gray-600">Técnica más compleja que redirige el tráfico de un sitio web legítimo a uno falso sin que el usuario se dé cuenta, a través de la manipulación de DNS o del archivo hosts local.</p>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    id: 'module-3',
+                    title: 'Módulo 3: Análisis Técnico del Email',
+                    content: `
+                        <p class="text-lg text-gray-700 mb-6">Para un analista, es crucial ir más allá de las señales visuales y entender los mecanismos técnicos que validan la autenticidad de un correo electrónico. Aquí nos sumergimos en las cabeceras de los correos y los protocolos de autenticación.</p>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">Spoofing: La Suplantación de Identidad</h3>
+                            <p class="text-gray-600 mb-4">El "spoofing" de correo electrónico ocurre cuando un atacante falsifica la dirección del remitente (el campo "From") para que parezca que el correo proviene de alguien en quien confías. Esto es posible porque el protocolo base de correo (SMTP) no tiene un mecanismo de autenticación incorporado. Para combatir esto, se crearon los siguientes estándares:</p>
+                        </div>
+                        <div class="mt-8">
+                            <h3 class="text-xl font-semibold mb-4 text-center text-gray-800">Flujo de Autenticación de Correo</h3>
+                            <div class="relative md:flex justify-between items-center space-y-4 md:space-y-0 md:space-x-4 p-4">
+                                <div id="step-spf" class="flow-step border-2 rounded-lg p-4 text-center w-full md:w-1/3">
+                                    <div class="text-2xl mb-2">1</div>
+                                    <h4 class="font-bold">SPF</h4>
+                                    <p class="text-sm">¿El servidor de envío está autorizado?</p>
+                                </div>
+                                <div class="hidden md:block text-gray-400 text-2xl font-bold">→</div>
+                                <div id="step-dkim" class="flow-step border-2 rounded-lg p-4 text-center w-full md:w-1/3">
+                                    <div class="text-2xl mb-2">2</div>
+                                    <h4 class="font-bold">DKIM</h4>
+                                    <p class="text-sm">¿El mensaje no ha sido alterado?</p>
+                                </div>
+                                <div class="hidden md:block text-gray-400 text-2xl font-bold">→</div>
+                                <div id="step-dmarc" class="flow-step border-2 rounded-lg p-4 text-center w-full md:w-1/3">
+                                    <div class="text-2xl mb-2">3</div>
+                                    <h4 class="font-bold">DMARC</h4>
+                                    <p class="text-sm">¿Qué hago si SPF o DKIM fallan?</p>
+                                </div>
+                            </div>
+                            <div id="tech-details" class="mt-6 bg-gray-50 p-6 rounded-lg">
+                                <!-- Details will be loaded here -->
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    id: 'module-4',
+                    title: 'Módulo 4: Técnicas Avanzadas y Evasión',
+                    content: `
+                        <p class="text-lg text-gray-700 mb-6">Los atacantes utilizan métodos cada vez más ingeniosos para ocultar sus intenciones y evadir los filtros de seguridad. Un analista debe conocer estas técnicas para no ser engañado.</p>
+                        <div class="space-y-6">
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800">Ofuscación de Enlaces (URL Obfuscation)</h3>
+                                <p class="text-gray-600 mb-4">El objetivo es ocultar la verdadera URL de destino. Las técnicas incluyen:</p>
+                                <ul class="list-disc list-inside space-y-2 text-gray-600">
+                                    <li><strong>Acortadores de URL:</strong> Servicios como Bitly o TinyURL pueden enmascarar un enlace malicioso.</li>
+                                    <li><strong>Ataques Homógrafos:</strong> Usar caracteres de otros alfabetos que se parecen a los latinos (ej: 'а' cirílica en vez de 'a' latina). <code class="bg-gray-200 p-1 rounded">gооgle.com</code> vs <code class="bg-gray-200 p-1 rounded">google.com</code>.</li>
+                                    <li><strong>Abuso de Subdominios:</strong> Crear subdominios engañosos como <code class="bg-gray-200 p-1 rounded">paypal.com.secure-login.net</code>.</li>
+                                    <li><strong>Codificación de URL:</strong> Usar codificación hexadecimal o Base64 para ocultar caracteres maliciosos en la URL.</li>
+                                </ul>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800">Contenido Embebido (Embedding)</h3>
+                                <p class="text-gray-600 mb-4">Los elementos maliciosos pueden estar ocultos dentro del propio cuerpo del correo, en lugar de ser enlaces directos.</p>
+                                <ul class="list-disc list-inside space-y-2 text-gray-600">
+                                    <li><strong>Imágenes con Enlaces:</strong> Una imagen o un botón pueden contener un hipervínculo malicioso.</li>
+                                    <li><strong>HTML Malicioso:</strong> El correo puede contener formularios HTML que envían los datos directamente al atacante, sin necesidad de visitar un sitio web externo.</li>
+                                    <li><strong>Archivos adjuntos HTML:</strong> Un archivo .html adjunto puede abrir una página de phishing localmente en el navegador, evadiendo algunos filtros de URL.</li>
+                                </ul>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800">Ingeniería Social Avanzada</h3>
+                                <p class="text-gray-600">Más allá de la urgencia, los atacantes usan pretextos más elaborados, como suplantar a un compañero de trabajo pidiendo ayuda, falsificar una cadena de correos para dar contexto (secuestro de conversación), o hacer referencia a eventos públicos o noticias recientes para aumentar la credibilidad.</p>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    id: 'module-5',
+                    title: 'Módulo 5: Estrategias de Mitigación y Defensa',
+                    content: `
+                        <p class="text-lg text-gray-700 mb-6">La defensa contra el phishing requiere un enfoque en capas, combinando tecnología, políticas y, lo más importante, la concienciación del usuario. Aquí se resumen las mejores prácticas.</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800">Para Usuarios</h3>
+                                <ul class="list-disc list-inside space-y-2 text-gray-600">
+                                    <li><strong>Verificar antes de actuar:</strong> Si un correo parece sospechoso, contacta al supuesto remitente por otro medio (teléfono, chat).</li>
+                                    <li><strong>No compartir información confidencial:</strong> Las empresas legítimas rara vez piden contraseñas o datos personales por correo.</li>
+                                    <li><strong>Usar Autenticación de Múltiples Factores (MFA):</strong> Añade una capa extra de seguridad. Incluso si roban tu contraseña, no podrán acceder a tu cuenta.</li>
+                                    <li><strong>Mantener software actualizado:</strong> Navegadores y clientes de correo actualizados tienen mejores protecciones contra phishing.</li>
+                                    <li><strong>Reportar correos sospechosos:</strong> Usa los botones de "Reportar Phishing" de tu cliente de correo.</li>
+                                </ul>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800">Para Organizaciones</h3>
+                                <ul class="list-disc list-inside space-y-2 text-gray-600">
+                                    <li><strong>Implementar Filtros de Correo Avanzados:</strong> Soluciones de seguridad que analizan enlaces, archivos adjuntos y la reputación del remitente.</li>
+                                    <li><strong>Configurar DMARC:</strong> Implementar SPF, DKIM y una política DMARC de "rechazo" (reject) es la defensa técnica más fuerte contra el spoofing de tu propio dominio.</li>
+                                    <li><strong>Formación y Simulación de Phishing:</strong> Entrenar a los empleados para que reconozcan los ataques y realizar simulacros para medir su preparación.</li>
+                                    <li><strong>Aislamiento de Navegador (Browser Isolation):</strong> Tecnología que ejecuta la navegación web en un entorno aislado para que el malware no pueda alcanzar la red corporativa.</li>
+                                    <li><strong>Principio de Mínimo Privilegio:</strong> Limitar los permisos de los usuarios a solo lo necesario para su trabajo, reduciendo el impacto de una cuenta comprometida.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    `
+                }
+            ],
+            quiz: {
+                id: 'quiz',
+                title: 'Evaluación de Conocimientos',
+                content: `<p class="text-lg text-gray-700 mb-6">Es hora de poner a prueba lo que has aprendido. Selecciona la respuesta correcta para cada pregunta.</p>`,
+                questions: [
+                    {
+                        question: "¿Qué tipo de ataque de phishing está específicamente dirigido a un alto ejecutivo de una empresa?",
+                        options: ["Smishing", "Whaling", "Pharming", "Vishing"],
+                        answer: "Whaling"
+                    },
+                    {
+                        question: "¿Qué protocolo de autenticación de correo verifica que un mensaje no ha sido alterado en tránsito mediante una firma digital?",
+                        options: ["SPF", "SMTP", "DMARC", "DKIM"],
+                        answer: "DKIM"
+                    },
+                    {
+                        question: "Recibes un correo de 'info@micrrosoft.com' pidiéndote que actualices tu contraseña. ¿Qué técnica de evasión se está utilizando principalmente aquí?",
+                        options: ["Acortador de URL", "Ataque Homógrafo", "Abuso de Subdominio", "Contenido Embebido"],
+                        answer: "Ataque Homógrafo"
+                    },
+                    {
+                        question: "¿Cuál es la función principal de DMARC?",
+                        options: ["Listar los servidores de correo autorizados para un dominio.", "Firmar digitalmente los correos para verificar su integridad.", "Indicar a los servidores receptores qué hacer si fallan SPF y/o DKIM.", "Bloquear todos los archivos adjuntos sospechosos."],
+                        answer: "Indicar a los servidores receptores qué hacer si fallan SPF y/o DKIM."
+                    }
+                ]
+            }
+        };
+
+        const contentArea = document.getElementById('content-area');
+        const navMenu = document.getElementById('nav-menu');
+
+        const techDetailsData = {
+            spf: {
+                title: 'SPF (Sender Policy Framework)',
+                description: 'Es un registro DNS de tipo TXT que lista las direcciones IP de los servidores de correo autorizados para enviar emails en nombre de un dominio. Cuando un servidor recibe un correo, comprueba si la IP del remitente está en la lista SPF del dominio. Si no lo está, la comprobación SPF falla.',
+                example: '<code>v=spf1 ip4:192.168.0.1 include:_spf.google.com ~all</code><br><small>Esto autoriza la IP 192.168.0.1 y los servidores de Google. El ~all sugiere un "fallo suave" (soft fail) para otros.</small>'
+            },
+            dkim: {
+                title: 'DKIM (DomainKeys Identified Mail)',
+                description: 'Añade una firma digital al encabezado del correo. Esta firma se crea usando una clave privada del dominio del remitente. El servidor receptor usa una clave pública (publicada en el DNS del dominio) para verificar la firma. Si la firma es válida, prueba dos cosas: que el correo realmente proviene del dominio y que su contenido no ha sido modificado en el camino.',
+                example: '<code>DKIM-Signature: v=1; a=rsa-sha256; d=example.com; s=google; ...</code><br><small>Un encabezado de firma DKIM contiene el dominio (d=) y el selector (s=) para encontrar la clave pública.</small>'
+            },
+            dmarc: {
+                title: 'DMARC (Domain-based Message Authentication, Reporting, and Conformance)',
+                description: 'Es el "policía" que utiliza SPF y DKIM. Es un registro DNS que le dice a los servidores receptores qué hacer si un correo que dice ser de tu dominio falla las comprobaciones de SPF y/o DKIM. También proporciona informes sobre correos fraudulentos. Las políticas pueden ser:',
+                example: '<ul class="list-disc list-inside"><li><strong>p=none:</strong> Monitorizar, no hacer nada.</li><li><strong>p=quarantine:</strong> Enviar a la carpeta de spam.</li><li><strong>p=reject:</strong> Rechazar el correo por completo.</li></ul><code>v=DMARC1; p=reject; rua=mailto:dmarc-reports@example.com</code>'
+            }
+        };
+
+        function renderContent(hash) {
+            const id = hash.substring(1);
+            let data;
+            if (id.startsWith('module')) {
+                data = appData.modules.find(m => m.id === id);
+            } else {
+                data = appData.quiz;
+            }
+
+            if (!data) data = appData.modules[0];
+            
+            let contentHTML = `<div class="module-content bg-white p-6 sm:p-8 rounded-lg shadow-lg">
+                                 <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">${data.title}</h2>
+                                 ${data.content}
+                               </div>`;
+            
+            if (id === 'quiz') {
+                contentHTML += `<div id="quiz-container" class="mt-8"></div>`;
+            }
+            
+            contentArea.innerHTML = contentHTML;
+
+            if (id === 'module-3') {
+                setupTechModule();
+            }
+            if (id === 'quiz') {
+                renderQuiz();
+            }
+            
+            updateActiveLink(data.id);
+        }
+
+        function setupTechModule() {
+            const spfStep = document.getElementById('step-spf');
+            const dkimStep = document.getElementById('step-dkim');
+            const dmarcStep = document.getElementById('step-dmarc');
+            const techDetails = document.getElementById('tech-details');
+            
+            function showDetails(tech) {
+                const details = techDetailsData[tech];
+                techDetails.innerHTML = `
+                    <h4 class="text-lg font-semibold mb-2 text-blue-600">${details.title}</h4>
+                    <p class="text-gray-600 mb-3">${details.description}</p>
+                    <div class="bg-gray-100 p-3 rounded text-sm text-gray-800">${details.example}</div>
+                `;
+                spfStep.classList.remove('active');
+                dkimStep.classList.remove('active');
+                dmarcStep.classList.remove('active');
+                document.getElementById(`step-${tech}`).classList.add('active');
+            }
+
+            spfStep.addEventListener('click', () => showDetails('spf'));
+            dkimStep.addEventListener('click', () => showDetails('dkim'));
+            dmarcStep.addEventListener('click', () => showDetails('dmarc'));
+            
+            showDetails('spf');
+        }
+        
+        function renderQuiz() {
+            const quizContainer = document.getElementById('quiz-container');
+            const questions = appData.quiz.questions;
+            let quizHTML = '';
+            questions.forEach((q, index) => {
+                const optionsHTML = q.options.map(opt => 
+                    `<button class="quiz-option block w-full text-left p-3 border rounded-md bg-gray-50 hover:bg-gray-100" data-question="${index}" data-answer="${opt}">${opt}</button>`
+                ).join('');
+
+                quizHTML += `
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                        <p class="font-semibold text-gray-800 mb-4">${index + 1}. ${q.question}</p>
+                        <div class="space-y-2">${optionsHTML}</div>
+                        <div id="feedback-${index}" class="mt-3 text-sm font-medium"></div>
+                    </div>
+                `;
+            });
+            quizContainer.innerHTML = quizHTML;
+            
+            quizContainer.addEventListener('click', (e) => {
+                if (e.target.matches('.quiz-option')) {
+                    const questionIndex = e.target.dataset.question;
+                    const selectedAnswer = e.target.dataset.answer;
+                    const question = questions[questionIndex];
+                    const options = quizContainer.querySelectorAll(`[data-question="${questionIndex}"]`);
+
+                    options.forEach(opt => {
+                        opt.disabled = true;
+                        const answer = opt.dataset.answer;
+                        if (answer === question.answer) {
+                            opt.classList.add('correct');
+                        } else if (answer === selectedAnswer) {
+                            opt.classList.add('incorrect');
+                        }
+                    });
+
+                    const feedbackEl = document.getElementById(`feedback-${questionIndex}`);
+                    if (selectedAnswer === question.answer) {
+                        feedbackEl.textContent = '¡Correcto!';
+                        feedbackEl.className = 'mt-3 text-sm font-medium text-green-600';
+                    } else {
+                        feedbackEl.textContent = `Incorrecto. La respuesta correcta es: ${question.answer}`;
+                        feedbackEl.className = 'mt-3 text-sm font-medium text-red-600';
+                    }
+                }
+            });
+        }
+
+        function updateActiveLink(id) {
+            navMenu.querySelectorAll('a').forEach(link => {
+                if (link.hash === `#${id}`) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        window.addEventListener('hashchange', () => renderContent(window.location.hash));
+        window.addEventListener('load', () => {
+            if (window.location.hash) {
+                renderContent(window.location.hash);
+            } else {
+                window.location.hash = 'module-1';
+            }
+        });
+
+    </script>
+</body>
+</html>
